@@ -1,1 +1,223 @@
-https://claude.ai/public/artifacts/e41d59fa-6c69-4c00-867b-274c5930393d
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>낯선대학 9기 출석 체크</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f13;
+    --surface: #1a1a22;
+    --surface2: #22222e;
+    --border: #2e2e3e;
+    --accent: #7c6cfa;
+    --accent2: #fa6c8c;
+    --green: #4ade80;
+    --green-dim: #1a3a28;
+    --text: #f0f0f8;
+    --text-muted: #7070a0;
+    --text-dim: #4a4a6a;
+    --radius: 20px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+  header {
+    display: flex; align-items: center;
+    padding: 16px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0; gap: 14px;
+  }
+  .header-brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .brand-logo {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), #9c8cfc);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  .brand-text { display: flex; flex-direction: column; gap: 2px; }
+  .community-name { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+  .date-display { font-size: 12px; color: var(--text-muted); }
+  .session-badge {
+    margin-left: auto; padding: 6px 14px;
+    background: rgba(124, 108, 250, 0.15);
+    color: var(--accent); border-radius: 20px;
+    font-size: 13px; font-weight: 600;
+  }
+  .stats-bar {
+    display: flex; align-items: center;
+    padding: 14px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    gap: 20px; flex-shrink: 0;
+  }
+  .stat-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); }
+  .stat-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .stat-dot.present { background: var(--green); }
+  .stat-dot.total { background: var(--accent); }
+  .stat-value { color: var(--text); font-weight: 700; font-size: 15px; }
+  .progress-wrap { flex: 1; margin-left: auto; max-width: 280px; }
+  .progress-track { width: 100%; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--green)); border-radius: 3px; transition: width 0.4s ease; width: 0%; }
+  .progress-percent { font-size: 11px; color: var(--text-muted); margin-top: 4px; text-align: right; }
+  .list-wrap { flex: 1; overflow-y: auto; padding: 16px 20px 120px; -webkit-overflow-scrolling: touch; }
+  .group-header {
+    font-size: 13px; color: var(--text-muted);
+    font-weight: 600; padding: 12px 8px 6px;
+    position: sticky; top: 0; background: var(--bg); z-index: 5;
+  }
+  .member-card {
+    display: flex; align-items: center;
+    padding: 14px 18px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 14px;
+    margin-bottom: 8px; cursor: pointer;
+    transition: all 0.18s ease;
+  }
+  .member-card:active { transform: scale(0.98); }
+  .member-card.present { background: var(--green-dim); border-color: var(--green); }
+  .member-name { font-size: 16px; font-weight: 500; flex: 1; }
+  .member-card.present .member-name { color: var(--green); font-weight: 600; }
+  .attendance-badge {
+    padding: 4px 10px; background: var(--surface2);
+    color: var(--text-muted); border-radius: 12px;
+    font-size: 12px; margin-right: 12px;
+  }
+  .check-icon {
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 2px solid var(--text-dim);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease; flex-shrink: 0;
+  }
+  .member-card.present .check-icon { background: var(--green); border-color: var(--green); }
+  .check-icon svg { width: 14px; height: 14px; opacity: 0; }
+  .member-card.present .check-icon svg { opacity: 1; }
+  .sync-bar {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    padding: 12px 20px 20px;
+    background: linear-gradient(180deg, transparent, var(--bg) 20%);
+    display: flex; flex-direction: column; gap: 8px; z-index: 10;
+  }
+  .sync-btn {
+    width: 100%; padding: 14px; background: var(--accent);
+    color: white; border: none; border-radius: 14px;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    transition: all 0.18s ease;
+  }
+  .sync-btn:active:not(:disabled) { transform: scale(0.98); }
+  .sync-btn:disabled { opacity: 0.6; cursor: wait; }
+  .status-text { font-size: 12px; color: var(--text-muted); text-align: center; }
+  .popup-toast {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 28px 40px; text-align: center;
+    z-index: 100; opacity: 0; pointer-events: none;
+    transition: all 0.25s ease; min-width: 200px;
+  }
+  .popup-toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .popup-name { font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+  .popup-count { font-size: 15px; color: var(--accent); font-weight: 600; margin-bottom: 4px; }
+  .popup-label { font-size: 13px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-brand">
+    <div class="brand-logo">📚</div>
+    <div class="brand-text">
+      <div class="community-name">낯선대학 9기</div>
+      <div class="date-display" id="dateDisplay"></div>
+    </div>
+  </div>
+  <div class="session-badge" id="sessionBadge">-</div>
+</header>
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-dot present"></div>
+    <span class="stat-value" id="presentCount">0</span>
+    <span>출석</span>
+  </div>
+  <div class="stat-item">
+    <div class="stat-dot total"></div>
+    <span class="stat-value" id="totalCount">54</span>
+    <span>전체</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-percent" id="progressPercent">0%</div>
+  </div>
+</div>
+<div class="list-wrap" id="listWrap"></div>
+<div class="sync-bar">
+  <button class="sync-btn" id="syncBtn" onclick="syncToSheet()">📊 구글 시트에 저장</button>
+  <div class="status-text" id="exportStatus">출석 완료 후 구글 시트에 저장하세요</div>
+</div>
+<div class="popup-toast" id="popupToast">
+  <div class="popup-name" id="popupName"></div>
+  <div class="popup-count" id="popupCount"></div>
+  <div class="popup-label" id="popupLabel"></div>
+</div>
+<script>
+const MEMBERS_RAW = [
+  "안주현", "임은정", "김경종", "오영훈", "강우영", "우제성",
+  "한슬기", "박지혜", "심승희", "임우재", "정태영", "이재현",
+  "남동익", "정웅기", "강유진", "정나현", "이동윤", "김경민",
+  "홍진민", "김지산", "신사환", "이소민", "백진호", "성나영",
+  "권남진", "김인선", "신유나", "민예원", "박애솔", "김희균",
+  "허지원", "윤가희", "신가영", "정민희", "은종훈", "황건강",
+  "이재형", "김효신", "박선영", "이윤혁", "이재련", "유지민",
+  "신재윤", "류지희", "정서진", "안서연", "최시내", "김상미",
+  "전남건", "김해리", "이현선", "정도빈", "한준호", "김애형"
+];
+const SCHEDULE = [
+  { date: "2026-04-01", session: 1 }, { date: "2026-04-08", session: 2 },
+  { date: "2026-04-15", session: 3 }, { date: "2026-04-29", session: 4 },
+  { date: "2026-05-06", session: 5 }, { date: "2026-05-13", session: 6 },
+  { date: "2026-05-20", session: 7 }, { date: "2026-05-27", session: 8 },
+  { date: "2026-06-10", session: 9 }, { date: "2026-06-17", session: 10 },
+  { date: "2026-06-24", session: 11 }, { date: "2026-07-08", session: 12 },
+  { date: "2026-07-15", session: 13 }, { date: "2026-07-22", session: 14 },
+  { date: "2026-08-12", session: 15 }, { date: "2026-08-26", session: 16 },
+  { date: "2026-09-02", session: 17 }, { date: "2026-09-09", session: 18 },
+  { date: "2026-09-16", session: 19 }, { date: "2026-09-30", session: 20 },
+  { date: "2026-10-07", session: 21 }, { date: "2026-10-14", session: 22 },
+  { date: "2026-10-28", session: 23 }, { date: "2026-11-04", session: 24 },
+  { date: "2026-11-11", session: 25 }, { date: "2026-11-25", session: 26 },
+  { date: "2026-12-02", session: 27 }, { date: "2026-12-09", session: 28 }
+];
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby510l_aRqTDqRKQPBordmgPrq-OV590bOhOSBDhaY_rQ237DALu2enS3bcIoyioy9M/exec';
+const MEMBERS = [...MEMBERS_RAW].sort((a, b) => a.localeCompare(b, 'ko'));
+let attendance = {};
+function formatDate() {
+  const d = new Date();
+  const days = ['일','월','화','수','목','금','토'];
+  return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (${days[d.getDay()]})`;
+}
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function getTodaySession() {
+  const today = todayKey();
+  const match = SCHEDULE.find(s => s.date === today);
+  return match || null;
+}
+document.getElementById('dateDisplay').textContent = formatDate();
+document.title = '낯선대학 9기 출석 체크';
+function updateSessionBadge() {
+  const s = getTodaySession();
+  const badge = document.getElementById('sessionBadge');
+  if (s) {
+    badge.textContent = `${s.session}회차`;
+  } else {
+    const today = todayKey()
